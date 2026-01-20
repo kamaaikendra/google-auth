@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in with Google | Kimi-Win</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <style>
+    /* Disable text selection */
+    * {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --danger: #f72585;
+      --warning: #f8961e;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --white: #ffffff;
+      --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(
+        180deg,
+        #6600FF 0%,
+        #8E35EF 10%,
+        #9D00FF 20%,
+        #7F38EC 30%,
+        #6600ff 40%,
+        #8E35EF 50%,
+        #9D00FF 60%,
+        #7F38EC 70%,
+        #6600FF 80%,
+        #8E35EF 90%,
+        #9D00FF 100%
+      );
+      font-family: 'Poppins', sans-serif;
+      background-size: cover;
+      background-size: 100% 100%;
+      background-position: center;
+      display: flex;
+      padding:0px;
+      align-content: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .auth-container {
+      background:url("https://img.freepik.com/premium-vector/luxury-floral-ornamental-islamic-background_1247368-464.jpg");      
+      background-size: 100% 100%;
+      width: 100%;
+      max-width: 100%;
+      min-height:90%;
+      overflow: hidden;
+      position: relative;
+      transition: var(--transition);
+      margin: 0px;
+    }
+
+    .auth-header {
+      background: rgba(355,66,455,0.4);
+      color: var(--white);
+      padding: 0px;
+      text-align: center;
+      position: relative;
+      border-radius: 0;
+      font-weight: 900;
+      border:none;
+      overflow: hidden;
+    }
+    
+    .auth-header h1 {
+      font-size: 15px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      position: relative;
+      font-family: fantasy;
+      margin-top: -10px;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.99);
+    }
+
+    .auth-header p {
+      font-size: 10px;
+      opacity: 0.9;
+      position: relative;
+      font-family: serif;
+    }
+
+    .auth-logo {
+      width: 150px;
+      height: 135px;
+      background:url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiEYNZ5qyBsSYJye4WMUQENdMA3y6zqFMsGYuy5ZCBeWOenKWHoQ7Ld_ofANDo6XUsAwO9CVMnqhQFhaGZSo9AR8wJg1exYEZlhiRXL4B4vVD54yh9d05MESFvyMUSTnCv-hm-VZX7fzZVqpmJohF_yvy7JfNjbwDZkn5uln_XY_c5Fpyc6RfBNShpCdFY/s16000/1000095879.png');
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 15px;
+      background-size: 101% 101%;
+      animation: pulse 5s infinite;
+    }
+
+    .auth-logo img {
+      color: var(--primary);
+      font-size: 28px;
+      height: 155px;
+      width: 155px;
+    }
+
+    .auth-body {
+      padding: 30px;
+    }
+
+    /* Referral Code Section */
+    .referral-section {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .referral-section.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 10px;
+      font-weight: 900;
+      color: white;
+      font-family: fantasy;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.99);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px 10px 8px 40px;
+      font-size: 10px;
+      font-weight: 900;
+      transition: var(--transition);
+      background:transparent;
+      border:0;
+      border-bottom:1px solid black;
+      border-radius:0px;
+      background-size: 100% 100%;
+      font-family: fantasy;
+      color: white;
+    }
+
+    .form-control:focus {
+      border-color:#fdfd01;
+      outline: none;
+    }
+
+    .form-icon {
+      position: absolute;
+      left: 0px;
+      top: 27px;
+      color:rgba(255,255,255,0.8);
+      font-size: 15px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 24px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 900;
+      font-family: fantasy;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background:url("https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjrzXWlJoSkI8I_mEDO5rpKez1kydzqUpjsDqKkPW-bvgLGTIY154DX-96VEN8zuOo_DUcTQztVKPzxyDZkDxSiV6Ahts9eu4L7yDpA_7p3Z6X7qJLGAREQMckePMfKj7jGPacMPiIhm0VkLE8kFuH4Mg5NCBc5NvQKl_KqW4qETcOAaoG1YbgFVzNqKJw/s806/1000108763.png");
+      border:none;
+      border-radius: 0px;
+      background-size: 100% 100%;
+      color: black;
+      font-size: 15px;
+      font-weight: 900;
+      font-family: fantasy;
+    }
+
+    .btn-primary:hover {
+      transform: scale(1);
+      filter: drop-shadow(0 0 1px white) drop-shadow(0 0 0.5px rgba(0, 0, 0, 0.9));
+    }
+    
+    .btn-primary:active {
+      transform: scale(1.05);
+      filter: drop-shadow(0 0 1px white) drop-shadow(0 0 4px rgba(0, 0, 0, 0.7));
+    }
+
+    .btn-google {
+      background: linear-gradient(
+        180deg,
+        #00ad97 0%,
+        #005530 100%
+      );
+      border:2px solid#005530;
+      background-size: 100% 100%;
+      color: white;
+      margin-bottom: 15px;
+      box-shadow: inset 0 10px 20px rgba(255, 255, 255, 0.9);
+      font-family: fantasy;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-google:hover {
+      transform: translateY(-2px);
+      box-shadow: inset 0 10px 20px rgba(255, 255, 255, 0.8);
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.8);
+      font-family: fantasy;
+    }
+
+    /* User Info Styles */
+    #userInfo {
+      display:none;
+      text-align: center;
+      padding: 30px;
+      font-family: fantasy;
+    }
+
+    .user-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 20px;
+      font-size: 32px;
+      opacity:0;
+    }
+
+    .user-email {
+      font-size: 16px;
+      margin-bottom: 20px;
+      color: var(--dark);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: 1px;
+      background: url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEipgOY-Cw-VRJjAepn2qfsUfVBXmOLW43hwo2d-Te9CG9O7U6inSiYFr-7wWfOkpJG7mZk_W0yz6gDnDXy3EW9qkfI6lJ9Lo0d_Va5SzzWTPF2otmaIZLjILvWtrrDQofej8rcayaSfKjbTzU3XrAd5L4EYmWT5rqlWF5oMwYCZ7O6mn1bYdRCzRPDPqpI/s16000/1000100381.png');
+      background-size: 100% 100%;
+      color: #F3E8EA;
+      font-weight: 900;
+      font-size: 10px;
+      padding: 15px 25px;
+      border-radius: 0px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.0);
+      display: flex;
+      align-items: center;
+      z-index: 100000;
+      transform: translateY(-150%);
+      transition: transform 0.3s ease;
+      text-align: center;
+      height:50px;
+      max-width: 95vw;
+      font-family: fantasy;
+      text-shadow: 1px 1px 2px #EE9A4D;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast i {
+      margin-right: 10px;
+      color: #A55D35;
+      font-size: 14px;
+    }
+
+    .toast.success {
+      color: #77DD77;
+    }
+
+    .toast.error {
+      color: #A55D35;
+    }
+
+    .toast.warning {
+      color: var(--dark);
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      top:0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: none;
+      width: 20px;
+      height: 20px;
+      margin: 0 auto;
+      border: 4px solid rgba(0, 0, 0, 0.3);
+      border-radius: 50%;
+      border-top: 4px solid orange;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* NEW: Signup Bonus Modal */
+    .signup-bonus-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1004;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.5s ease;
+    }
+
+    .signup-bonus-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .signup-bonus-container {
+        border-radius: 20px;
+  background: linear-gradient(
+    0deg,
+    rgba(147, 51, 234, 0.95),
+    rgba(219, 39, 119, 0.95),
+    rgba(245, 158, 11, 0.95)
+  );
+  
+  border-radius: 15px;
+  padding:30px;
+  width: 90%;
+  max-width: 400px;
+  
+  box-shadow: 
+    0 20px 60px rgba(147, 51, 234, 0.5),
+    0 0 100px rgba(245, 158, 11, 0.4),
+    0 0 30px rgba(255, 255, 255, 0.3),
+    inset 0 0 30px rgba(255, 255, 255, 0.2);
+  
+  transform: scale(0.8) translateY(30px);
+  transition: transform 0.5s ease, box-shadow 0.3s ease;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+    .signup-bonus-icon {
+      height:150px;
+      width:150px;
+      background:url('https://i.giphy.com/fjxeswpTKg3Uy2INQx.webp');
+      background-size: 100% 100%;
+      align-self: center;
+      justify-self:center;
+      filter: drop-shadow(0 0 5px rgba(183,0,791, 0.99));
+    }
+
+    @keyframes bounce {
+      from {
+        transform: translateY(0) scale(1);
+      }
+      to {
+        transform: translateY(-10px) scale(1.05);
+      }
+    }
+
+    .signup-bonus-title {
+      font-size: 28px;
+      font-weight: 900;
+      margin-bottom: 10px;
+      color:rgba(299,0,555,0.9);
+      text-shadow:0 1px 1px rgba(0,0,0,0.99);
+      font-family: fantasy;
+    }
+
+    .signup-bonus-subtitle {
+      font-size: 12px;
+      margin-bottom: 10px;
+      color: #fff;
+      font-family:UI;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .signup-bonus-amount {
+      font-size: 50px;
+      font-weight: 900;
+      color:#fdfd01;
+      font-family:Segoe UI;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.8),
+                   0 0 40px rgba(255, 152, 0, 0.6);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .signup-bonus-claim-btn {
+      background:url("https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjrzXWlJoSkI8I_mEDO5rpKez1kydzqUpjsDqKkPW-bvgLGTIY154DX-96VEN8zuOo_DUcTQztVKPzxyDZkDxSiV6Ahts9eu4L7yDpA_7p3Z6X7qJLGAREQMckePMfKj7jGPacMPiIhm0VkLE8kFuH4Mg5NCBc5NvQKl_KqW4qETcOAaoG1YbgFVzNqKJw/s806/1000108763.png");
+      border:none;
+      border-radius: 0px;
+      background-size: 100% 100%;
+      color: black;
+      font-size: 15px;
+      font-weight: 900;
+      font-family: fantasy;
+      width: 100%;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .signup-bonus-claim-btn:active {
+      transform: scale(0.95);
+    }
+
+    .signup-bonus-claim-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ffd700;
+      border-radius: 50%;
+      animation: confetti-fall 5s linear forwards;
+    }
+
+    @keyframes confetti-fall {
+      0% {
+        transform: translateY(-100px) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(1000px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 576px) {
+      .auth-container {
+        border-radius: 2px;
+      }
+      
+      .auth-header {
+        padding: 20px;
+      }
+      
+      .auth-body {
+        padding: 20px;
+      }
+      
+      .signup-bonus-container {
+        padding: 20px;
+        width: 95%;
+      }
+      
+      .signup-bonus-icon {
+        font-size: 60px;
+      }
+      
+      .signup-bonus-title {
+        font-size: 24px;
+      }
+      
+      .signup-bonus-amount {
+        font-size: 40px;
+      }
+      
+      .signup-bonus-claim-btn {
+        padding: 12px 30px;
+        font-size: 16px;
+      }
+    }
+
+    /* Responsive Desktop Screen Design */
+    @media (min-width: 1004px) {
+      body {
+        background-size: cover;
+        background-position: center;
+        padding: 40px;
+      }
+
+      .auth-container {
+        max-width: 900px;
+        display: flex;
+        min-height: 600px;
+      }
+
+      .auth-header {
+        width: 45%;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 0;
+      }
+
+      .auth-logo {
+        width: 200px;
+        height: 200px;
+        margin-bottom: 30px;
+      }
+
+      .auth-logo img {
+        height: 195px;
+        width: 195px;
+      }
+
+      .auth-header h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+      }
+
+      .auth-header p {
+        font-size: 16px;
+      }
+
+      .auth-body {
+        width: 55%;
+        padding: 50px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .form-group {
+        margin-bottom: 25px;
+      }
+
+      .form-control {
+        padding: 14px 15px 14px 45px;
+        font-size: 15px;
+      }
+
+      .form-icon {
+        font-size: 18px;
+        top: 42px;
+      }
+
+      .btn {
+        padding: 14px 24px;
+        font-size: 15px;
+      }
+
+      .auth-footer {
+        font-size: 14px;
+        margin-top: 25px;
+      }
+
+      /* User Info Styles */
+      #userInfo {
+        padding: 50px;
+        width: 55%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .user-avatar {
+        width: 120px;
+        height: 120px;
+        font-size: 48px;
+        margin-bottom: 30px;
+      }
+
+      .user-email {
+        font-size: 18px;
+        margin-bottom: 30px;
+      }
+
+      /* Toast Notification */
+      .toast {
+        left: 50%;
+        transform: translateX(-50%) translateY(-150%);
+        max-width: 500px;
+        width: auto;
+        padding: 18px 30px;
+        font-size: 16px;
+      }
+
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .toast i {
+        font-size: 22px;
+      }
+    }
+
+    /* Large Desktop Screens */
+    @media (min-width: 1440px) {
+      .auth-container {
+        max-width: 1100px;
+        min-height: 650px;
+      }
+
+      .auth-header {
+        padding: 50px;
+      }
+
+      .auth-logo {
+        width: 220px;
+        height: 220px;
+      }
+
+      .auth-logo img {
+        height: 215px;
+        width: 215px;
+      }
+
+      .auth-header h1 {
+        font-size: 36px;
+      }
+
+      .auth-header p {
+        font-size: 17px;
+      }
+
+      .auth-body {
+        padding: 60px;
+      }
+    }
+    .support-fab {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    border-radius: 0;
+    background:url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjcLCD3aI9TJHWvMYo_FO-C9IhuuEmPI5-AQeTn8n7ScwC3tmfrDpWzu9CosgbLjiNuh-E-r3vyi9CWi9Emcra77H3eRMkgFwNrzPMU4RxmXJWsMRhmFhjn7ZOQRhzcqY78IBH1Ruw8to6H3Le7Sjr8eDhiQbp4-9pDyhHsxqgekgIAMGVZe7iqLZZ2AVA/s16000/1000110907.png');
+    background-size: 100% 100%;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    top: 0px;
+    right: 0px;
+    animation: pulse 1s infinite;
+    filter: drop-shadow(0 0 15px rgba(0,0,0, 0.1));
+}
+
+.support-fab:active {
+    transform: scale(1.15);
+}
+  @keyframes pulse{ 0%,100%{ transform: scale(1)} 50%{ transform: scale(1.06)} }
+  </style>
+</head>
+<body>
+<!-- NEW: Signup Bonus Modal -->
+<div class="signup-bonus-modal" id="signupBonusModal">
+  <div class="signup-bonus-container">
+    <div class="signup-bonus-icon"></div>
+    <h2 class="signup-bonus-title">Congratulations</h2>
+    <p class="signup-bonus-subtitle">You've received a special signup Bonus!</p>
+    <div class="signup-bonus-amount" id="signupBonusAmountDisplay">₹0.00</div>
+    <button class="signup-bonus-claim-btn" id="claimBonusBtn" onclick="claimSignupBonus()"> Claim </button>
+  </div>
+</div>
+
+<button class="support-fab" id="supportFab"></button>
+<script>
+const fab = document.getElementById('supportFab');
+let isDragging = true;
+let isTouch = true;
+let dragStartX, dragStartY, fabStartX, fabStartY;
+
+// Mouse events
+fab.addEventListener('mousedown', startDrag);
+document.addEventListener('mousemove', drag);
+document.addEventListener('mouseup', stopDrag);
+
+// Touch events for mobile
+fab.addEventListener('touchstart', startDragTouch);
+document.addEventListener('touchmove', dragTouch);
+document.addEventListener('touchend', stopDragTouch);
+
+function startDrag(e) {
+    isDragging = true;
+    isTouch = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    const rect = fab.getBoundingClientRect();
+    fabStartX = rect.left;
+    fabStartY = rect.top;
+    
+    // Small delay to differentiate between click and drag
+    setTimeout(() => {
+        if (!isDragging) {
+            isDragging = true;
+        }
+    }, 50);
+    
+    e.preventDefault();
+}
+
+function startDragTouch(e) {
+    isDragging = false;
+    isTouch = true;
+    dragStartX = e.touches[0].clientX;
+    dragStartY = e.touches[0].clientY;
+    const rect = fab.getBoundingClientRect();
+    fabStartX = rect.left;
+    fabStartY = rect.top;
+    
+    // Small delay to differentiate between click and drag
+    setTimeout(() => {
+        if (!isDragging) {
+            isDragging = true;
+        }
+    }, 50);
+    
+    e.preventDefault();
+}
+
+function drag(e) {
+    if (!isDragging) return;
+    
+    const deltaX = e.clientX - dragStartX;
+    const deltaY = e.clientY - dragStartY;
+    
+    // Only start actual dragging if movement exceeds threshold (to distinguish from click)
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+        updatePosition(deltaX, deltaY);
+    }
+    e.preventDefault();
+}
+
+function dragTouch(e) {
+    if (!isDragging) return;
+    
+    const deltaX = e.touches[0].clientX - dragStartX;
+    const deltaY = e.touches[0].clientY - dragStartY;
+    
+    // Only start actual dragging if movement exceeds threshold
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+        updatePosition(deltaX, deltaY);
+        e.preventDefault();
+    }
+}
+
+function updatePosition(deltaX, deltaY) {
+    let newX = fabStartX + deltaX;
+    let newY = fabStartY + deltaY;
+    
+    // Constrain to viewport
+    const fabWidth = fab.offsetWidth;
+    const fabHeight = fab.offsetHeight;
+    const maxX = window.innerWidth - fabWidth;
+    const maxY = window.innerHeight - fabHeight;
+    
+    newX = Math.max(0, Math.min(newX, maxX));
+    newY = Math.max(0, Math.min(newY, maxY));
+    
+    fab.style.left = newX + 'px';
+    fab.style.top = newY + 'px';
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+}
+
+function stopDrag(e) {
+    if (isDragging && !isTouch) {
+        isDragging = false;
+    }
+}
+
+function stopDragTouch(e) {
+    if (isDragging && isTouch) {
+        isDragging = false;
+        
+        // Check if it was a tap (not a drag)
+        const touch = e.changedTouches[0];
+        const deltaX = Math.abs(touch.clientX - dragStartX);
+        const deltaY = Math.abs(touch.clientY - dragStartY);
+        
+        // If movement was very small, treat it as a click
+        if (deltaX < 10 && deltaY < 10) {
+            handleClick();
+        }
+    }
+}
+
+function handleClick() {
+    window.location.href = 'go:chat';
+}
+
+// Click handler for mouse
+fab.addEventListener('click', (e) => {
+    // Only handle click if not dragging and not on touch device
+    if (!isDragging && !isTouch) {
+        handleClick();
+    }
+});
+
+// Prevent default touch behavior
+fab.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+}, { passive: false });
+</script>
+  <script>
+    // Create loading screen elements
+    const loadingScreenHTML = `
+    <div class="loading-screen">
+      <div class="logo-area">
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiEYNZ5qyBsSYJye4WMUQENdMA3y6zqFMsGYuy5ZCBeWOenKWHoQ7Ld_ofANDo6XUsAwO9CVMnqhQFhaGZSo9AR8wJg1exYEZlhiRXL4B4vVD54yh9d05MESFvyMUSTnCv-hm-VZX7fzZVqpmJohF_yvy7JfNjbwDZkn5uln_XY_c5Fpyc6RfBNShpCdFY/s16000/1000095879.png" alt="Game Logo"/>
+      </div>
+
+      <div class="progress-container">
+        <div class="progress-bar" id="progressBar">0%</div>
+      </div>
+      <div class="bottom-text" id="loadingText">Loading...</div>
+      <div class="footer">©KIMI WIN CORPORATION ALL RIGHTS RESERVED.</div>
+    </div>
+    `;
+
+    // Add loading screen to the body
+    document.body.insertAdjacentHTML('afterbegin', loadingScreenHTML);
+
+    // Apply the same styles
+    const loadingStyles = document.createElement('style');
+    loadingStyles.textContent = `
+      /* Loading screen styles */
+      .loading-screen {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          180deg,
+          #5539CC 50%,
+          #FDBD01 100%
+        );
+        background-size: 100% 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        padding: 60px 20px 30px;
+        box-sizing: border-box;
+        z-index: 9999;
+        text-shadow:0 1px 1px rgba(0,0,0,0.99);
+      }
+
+      .logo-area {
+        text-align: center;
+        color: yellow;
+      }
+
+      .logo-area img {
+        max-height: 220px;
+        max-width: 220px;
+        min-height:220px;
+        background-color: transparent;
+        border-radius: 50%;
+        filter: drop-shadow(0 0 5px rgba(222,0,555,0.5)) 
+              drop-shadow(0 0 1000px rgba(155, 5, 548, 0.69));
+        transition: transform 0.01s ease-out;
+        pointer-events: auto;
+      }
+
+      .logo-subtitle {
+        color: #bfff80;
+        margin-top: 10px;
+        font-weight: bold;
+        font-size: 14px;
+      }
+
+      .progress-container {
+        height:25px;
+        width: 90%;
+        background-color: #222;
+        border-radius: 30px;
+        overflow: hidden;
+        position: fixed;
+        bottom:10%;
+        border:1px solid #fdbd01;
+        border-bottom: 2px solid #fdbd01;
+        border-top: 2px solid #fdbd01;
+        pointer-events: auto;
+      }
+
+      .progress-bar {
+        position: relative;
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          #00ff3b 0%,
+          #00cc2e 25%,
+          #00b82a 50%,
+          #00cc2e 75%,
+          #00ff3b 100%
+        );
+        border-radius: 30px;
+        transition: width 0s ease;
+        box-shadow: inset 0 0 4px 2px rgba(255, 255, 255, 0.1);
+        transition: width 0.2s ease;
+        display: flex;
+        align-items: center;
+        padding-left: 10px;
+        color: white;
+        font-weight: 900;
+        font-size: 12px;
+        font-family:UI;
+      }
+
+      .coin-icon {
+        position: absolute;
+        height: 40px;
+      }
+
+      .bottom-text {
+        position:fixed;
+        bottom:5%;
+        color:black;
+        font-size: 11px;
+        font-weight:900;
+        font-family:UI;
+        text-shadow:none;
+      }
+
+      .footer {
+        font-size: 10px;
+        color: white;
+        font-weight: 900;
+        transition: text-shadow 0.3s ease-out;
+        font-family:UI;
+        position:fixed;
+        bottom:2%;
+      }
+
+      .footer:hover {
+        text-shadow: 
+          0 0 10px green,
+          0 0 20px limegreen,
+          0 0 30px lime;
+      }
+
+      /* Responsive styles */
+      @media (min-width: 600px) {
+        .logo-area img {
+          height: 350px;
+          width: 350px;
+        }
+        
+        .progress-container {
+          width: 70%;
+          margin-top: 50%;
+        }
+        
+        .logo-subtitle,
+        .bottom-text,
+        .footer {
+          font-size: 16px;
+        }
+        
+        .progress-bar {
+          height: 25px;
+          font-size: 16px;
+        }
+        
+        .coin-icon {
+          height: 45px;
+        }
+      }
+
+      @media (min-width: 900px) {
+        .loading-screen {
+          padding: 80px 40px 40px;
+        }
+        
+        .logo-area img {
+          height: 400px;
+          width: 400px;
+        }
+        
+        .progress-container {
+          width: 60%;
+          margin-top: 30%;
+        }
+      }
+
+      @media (min-width: 1200px) {
+        .loading-screen {
+          padding: 100px 60px 60px;
+          max-width: 1200px;
+          margin: 0 auto;
+          left: 0;
+          right: 0;
+        }
+        
+        .logo-area img {
+          height: 450px;
+          width: 450px;
+        }
+        
+        .progress-container {
+          width: 50%;
+          margin-top: 20%;
+        }
+        
+        .logo-subtitle,
+        .bottom-text,
+        .footer {
+          font-size: 18px;
+        }
+        
+        .progress-bar {
+          height: 30px;
+          font-size: 18px;
+        }
+        
+        .coin-icon {
+          height: 50px;
+        }
+      }
+
+      @media (min-width: 1600px) {
+        .logo-area img {
+          height: 500px;
+          width: 500px;
+        }
+        
+        .progress-container {
+          width: 40%;
+        }
+      }
+
+      @media (max-height: 600px) and (orientation: landscape) {
+        .loading-screen {
+          padding: 20px;
+          flex-direction: row;
+          justify-content: space-around;
+          align-items: center;
+        }
+        
+        .logo-area {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 50%;
+        }
+        
+        .logo-area img {
+          height: 200px;
+          width: 200px;
+        }
+        
+        .progress-container {
+          width: 40%;
+          margin-top: 0;
+          margin-left: 20px;
+        }
+        
+        .logo-subtitle {
+          margin-top: 5px;
+          font-size: 12px;
+        }
+        
+        .bottom-text {
+          position: absolute;
+          bottom: 10px;
+          right: 20px;
+          margin-top: 0;
+          font-size: 12px;
+        }
+        
+        .footer {
+          position: absolute;
+          bottom: 10px;
+          left: 20px;
+          font-size: 12px;
+        }
+      }
+
+      @media (min-width: 900px) and (orientation: landscape) and (max-height: 600px) {
+        .logo-area img {
+          height: 250px;
+          width: 250px;
+        }
+        
+        .progress-container {
+          width: 35%;
+        }
+        
+        .logo-subtitle,
+        .bottom-text,
+        .footer {
+          font-size: 14px;
+        }
+        
+        .progress-bar {
+          height: 25px;
+          font-size: 14px;
+        }
+        
+        .coin-icon {
+          height: 40px;
+        }
+      }
+
+      @media (max-height: 400px) and (orientation: landscape) {
+        .logo-area img {
+          height: 150px;
+          width: 150px;
+        }
+        
+        .progress-container {
+          width: 45%;
+        }
+        
+        .progress-bar {
+          height: 18px;
+          font-size: 10px;
+        }
+        
+        .coin-icon {
+          height: 30px;
+        }
+        
+        .logo-subtitle,
+        .bottom-text,
+        .footer {
+          font-size: 10px;
+        }
+      }
+    `;
+    document.head.appendChild(loadingStyles);
+
+    // Loading animation logic
+    const progressBar = document.getElementById('progressBar');
+    const loadingText = document.getElementById('loadingText');
+    const minDuration = 1000; // 1 seconds
+    const maxDuration = 3000; // 3 seconds
+    const duration = Math.random() * (maxDuration - minDuration) + minDuration;
+    const interval = 100;
+    const steps = duration / interval;
+    let progress = 0;
+    let count = 0;
+
+    const messages = [
+      "Safe, secure & easy payment methods",
+      "Instant and unlimited withdrawals",
+      "Best value and top Rewards",
+      "Timely Returns, Top Investors",
+      "24/7 customer Service Support",
+      "India's #1 Trusted Investment platform",
+      "Fair and Responsible Investment app",
+      "#1 Trusted and Easy to use Earning app"
+    ];
+
+    // NEW: Add a flag to track if loading is complete
+    let loadingComplete = false;
+    
+    // NEW: Improved function to check and redirect signed-in users
+    function checkAndRedirectSignedInUser() {
+      if (!loadingComplete) return;
+      
+      const user = auth.currentUser;
+      console.log("Checking signed in user:", user ? "User found" : "No user");
+      
+      if (user) {
+        console.log("User is signed in, checking signup bonus status");
+        
+        // Check if user has already received signup bonus
+        database.ref('appusers/' + user.uid + '/hasReceivedSignupBonus').once('value')
+          .then(snapshot => {
+            const hasReceivedSignupBonus = snapshot.exists() ? snapshot.val() : false;
+            
+            if (hasReceivedSignupBonus) {
+              // User has claimed bonus, redirect to home immediately
+              console.log("User has claimed signup bonus, redirecting to home");
+              saveToLocalStorage(user);
+              setTimeout(() => {
+                window.location.href = REDIRECT_URL;
+              }, 100);
+            } else {
+              // User hasn't claimed bonus, check for pending bonus
+              console.log("User hasn't claimed signup bonus, checking for pending bonus");
+              database.ref('appusers/' + user.uid + '/pendingSignupBonusAmount').once('value')
+                .then(bonusSnapshot => {
+                  if (bonusSnapshot.exists() && !hasShownSignupBonusModal) {
+                    pendingSignupBonusAmount = bonusSnapshot.val();
+                    console.log("Found pending bonus:", pendingSignupBonusAmount);
+                    showSignupBonusModal(pendingSignupBonusAmount);
+                  } else {
+                    // No pending bonus, redirect to home
+                    console.log("No pending bonus, redirecting to home");
+                    saveToLocalStorage(user);
+                    setTimeout(() => {
+                      window.location.href = REDIRECT_URL;
+                    }, 100);
+                  }
+                });
+            }
+          });
+      }
+    }
+
+    const intervalId = setInterval(() => {
+      count++;
+      progress = Math.min((count / steps) * 100, 100);
+      progressBar.style.width = progress + '%';
+      progressBar.innerText = Math.floor(progress) + '%';
+
+      if (progress >= 100) {
+        clearInterval(intervalId);
+        loadingComplete = true;
+        document.querySelector('.loading-screen').style.display = 'none';
+        
+        // Check if user is already signed in and redirect
+        checkAndRedirectSignedInUser();
+      } else if (count % 10 === 0) {
+        const msgIndex = Math.floor(Math.random() * messages.length);
+        loadingText.textContent = messages[msgIndex];
+      }
+    }, interval);
+
+    const startTime = Date.now();
+  </script>
+
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="auth-logo"></div>
+      <h1 id="pageTitle">Welcome to Kimi-Win!</h1>
+      <p id="pageSubtitle" style="color: black;">Sign in with Google to continue</p>
+    </div>
+
+    <div class="auth-body">
+      <!-- Google Sign In Button -->
+      <div id="googleSignInSection">
+        <div class="spinner" id="googleSpinner"></div>
+        <button class="btn btn-google" onclick="signInWithGoogle()">
+          <i class="fab fa-google"></i> Sign in with Google
+        </button>
+        
+        <div class="auth-footer">
+          By signing in, you agree to our <a href="#">Terms & Conditions</a>
+        </div>
+      </div>
+
+      <!-- Referral Code Input Section (shown after Google sign in) -->
+      <div class="referral-section" id="referralSection">
+        <div class="form-group">
+          <label for="referralCode">Referral Code (Optional)</label>
+          <i class="fas fa-user-plus form-icon"></i>
+          <input type="text" id="referralCode" class="form-control" placeholder="Enter referral code if any (optional)" maxlength="10">
+          <div style="font-size: 9px; font-family:fantasy; color: rgba(255,255,255,0.7); margin-top: 5px;">
+            <i class="fas fa-info-circle"></i> Enter a referral code to get ₹15 bonus (optional)
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="submitReferralCode()">Continue</button>
+        <button class="btn" onclick="skipReferralCode()" style="background: transparent; border: 1px solid #ddd; color: white; margin-top: 10px;">
+          Skip & Continue
+        </button>
+      </div>
+
+      <!-- User Info (not used in this flow) -->
+      <div id="userInfo">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <p class="user-email">Logged in as: <span id="userEmail"></span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toast-message">Success message</span>
+  </div>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyD0Ne46PQqmvUnsq89GUJlKfLpWvsHmtbk",
+        authDomain: "kimi-win-90b82.firebaseapp.com",
+        databaseURL: "https://kimi-win-90b82-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "kimi-win-90b82",
+        storageBucket: "kimi-win-90b82.appspot.com",
+        messagingSenderId: "889222798634",
+        appId: "1:889222798634:web:86770b996003152f19d253"
+    };
+
+    const REDIRECT_URL = "go:home";
+    // UPDATED: Fixed referral rewards
+    const NEW_USER_REFERRAL_BONUS = 15; // 15 rupees for new user who uses referral code
+    const REFERRER_REWARD = 5; // 5 rupees for referrer
+    
+    // NEW: Signup bonus range for users WITHOUT referral code
+    const SIGNUP_BONUS_MIN = 1; // Minimum signup bonus
+    const SIGNUP_BONUS_MAX = 10; // Maximum signup bonus
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // User-friendly error messages
+    const errorMessages = {
+        "auth/popup-closed-by-user": "Sign in cancelled",
+        "auth/cancelled-popup-request": "Sign in cancelled",
+        "auth/popup-blocked": "Popup blocked. Please allow popups for this site",
+        "auth/network-request-failed": "Network error. Please check your connection",
+        "auth/too-many-requests": "Too many attempts. Please try again later",
+        "default": "An error occurred. Please try again"
+    };
+
+    // NEW: Variables for signup bonus modal
+    let pendingSignupBonusAmount = 0;
+    let hasShownSignupBonusModal = false;
+    let isClaimingBonus = false;
+    let referralCodeUsed = null; // Store referral code used
+    let currentUserAfterGoogleSignIn = null; // Store user after Google sign in
+
+    // Transaction ID Generator for authentication script
+    class TransactionIDGenerator {
+        constructor() {
+            this.incomeSerial = 1;
+            this.outgoingSerial = 1;
+        }
+        
+        generateCryptoNumber() {
+            // Generate 10-digit cryptographically secure random number
+            const array = new Uint32Array(3);
+            window.crypto.getRandomValues(array);
+            const randomNum = (array[0] * array[1] + array[2]) % 10000000000;
+            return randomNum.toString().padStart(10, '0');
+        }
+        
+        generateIncomeID() {
+            const cryptoNum = this.generateCryptoNumber();
+            const serial = this.incomeSerial.toString().padStart(2, '0');
+            this.incomeSerial++;
+            if (this.incomeSerial > 99) this.incomeSerial = 1;
+            return `IBR${cryptoNum}${serial}`;
+        }
+    }
+    
+    const transactionIDGen = new TransactionIDGenerator();
+
+    // NEW: Function to create confetti effect
+    function createConfetti() {
+        const modal = document.getElementById('signupBonusModal');
+        const colors = ['#ffd700', '#ff9800', '#ff5722', '#4caf50', '#2196f3', '#9c27b0'];
+        
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.top = Math.random() * 100 + '%';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.width = Math.random() * 10 + 5 + 'px';
+            confetti.style.height = Math.random() * 10 + 5 + 'px';
+            confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            modal.appendChild(confetti);
+            
+            // Remove confetti after animation
+            setTimeout(() => {
+                if (confetti.parentNode) {
+                    confetti.parentNode.removeChild(confetti);
+                }
+            }, 5000);
+        }
+    }
+
+    // Check URL parameters on page load
+    window.onload = function() {
+        // Set up auth state listener
+        setupAuthStateListener();
+        
+        // Check if user has pending signup bonus
+        checkPendingSignupBonus();
+    };
+
+    // Check if user has pending signup bonus
+    function checkPendingSignupBonus() {
+        const user = auth.currentUser;
+        if (user) {
+            database.ref('appusers/' + user.uid + '/hasReceivedSignupBonus').once('value')
+                .then(snapshot => {
+                    if (snapshot.exists() && snapshot.val() === false && !hasShownSignupBonusModal) {
+                        // User hasn't received signup bonus yet
+                        database.ref('appusers/' + user.uid + '/pendingSignupBonusAmount').once('value')
+                            .then(bonusSnapshot => {
+                                if (bonusSnapshot.exists()) {
+                                    pendingSignupBonusAmount = bonusSnapshot.val();
+                                    showSignupBonusModal(pendingSignupBonusAmount);
+                                }
+                            });
+                    }
+                });
+        }
+    }
+
+    // Show signup bonus modal
+    function showSignupBonusModal(bonusAmount) {
+        hasShownSignupBonusModal = true;
+        document.getElementById('signupBonusAmountDisplay').textContent = '₹' + bonusAmount.toFixed(2);
+        document.getElementById('signupBonusModal').classList.add('active');
+        createConfetti();
+        
+        // Disable claim button if already claiming
+        if (isClaimingBonus) {
+            document.getElementById('claimBonusBtn').disabled = true;
+            document.getElementById('claimBonusBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        }
+    }
+
+    // Hide signup bonus modal
+    function hideSignupBonusModal() {
+        document.getElementById('signupBonusModal').classList.remove('active');
+        // Clear confetti
+        const confettiElements = document.querySelectorAll('.confetti');
+        confettiElements.forEach(confetti => confetti.remove());
+    }
+
+    // Claim signup bonus function - UPDATED: Now creates all transactions for the user
+    function claimSignupBonus() {
+        if (isClaimingBonus) return;
+        
+        isClaimingBonus = true;
+        const claimBtn = document.getElementById('claimBonusBtn');
+        claimBtn.disabled = true;
+        claimBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        
+        const user = auth.currentUser;
+        if (!user) {
+            showToast("User not found. Please try again.", 'error');
+            isClaimingBonus = false;
+            claimBtn.disabled = false;
+            claimBtn.innerHTML = 'Claim';
+            return;
+        }
+        
+        const userId = user.uid;
+        const bonusAmount = pendingSignupBonusAmount;
+        
+        if (!bonusAmount || bonusAmount <= 0) {
+            showToast("No signup bonus available.", 'error');
+            isClaimingBonus = false;
+            claimBtn.disabled = false;
+            claimBtn.innerHTML = 'Claim';
+            return;
+        }
+        
+        // Get current balance to calculate balance after
+        database.ref('appusers/' + userId + '/totalBalance').once('value')
+            .then(snapshot => {
+                const currentBalance = snapshot.exists() ? Number(snapshot.val()) : 0;
+                const balanceAfter = currentBalance + bonusAmount;
+                
+                // Generate transaction record - ONLY NOW CREATING TRANSACTION
+                const transactionRecord = saveTransactionRecord(
+                    userId, 
+                    'signup_bonus', 
+                    bonusAmount,
+                    balanceAfter,
+                    referralCodeUsed ? `Referral signup bonus using code: ${referralCodeUsed}` : `Welcome Signup Bonus`, 
+                    referralCodeUsed ? 'Referral Bonus' : 'Signup Bonus', 
+                    true
+                );
+                
+                const updates = {};
+                updates[`appusers/${userId}/withdrawableBalance`] = firebase.database.ServerValue.increment(bonusAmount);
+                updates[`appusers/${userId}/totalBalance`] = firebase.database.ServerValue.increment(bonusAmount);
+                updates[`appusers/${userId}/hasReceivedSignupBonus`] = true;
+                updates[`appusers/${userId}/pendingSignupBonusAmount`] = null; // Remove pending amount
+                
+                // Add history - ONLY NOW CREATING HISTORY
+                const historyKey = referralCodeUsed ? `referral_bonus_${Date.now()}` : `signup_bonus_${Date.now()}`;
+                updates[`appusers/${userId}/history/${historyKey}`] = {
+                    type: referralCodeUsed ? 'referral_bonus' : 'signup_bonus',
+                    amount: bonusAmount,
+                    timestamp: Date.now(),
+                    description: referralCodeUsed ? `Referral signup bonus using code: ${referralCodeUsed}` : `signup bonus claimed`,
+                    transactionId: transactionRecord.value.transactionId
+                };
+                
+                // Add transaction record to updates - ONLY NOW CREATING TRANSACTION RECORD
+                updates[transactionRecord.path] = transactionRecord.value;
+
+                return database.ref().update(updates);
+            })
+            .then(() => {
+                showToast(`Congratulations! You claimed ₹${bonusAmount} signup bonus!`, 'success');
+                
+                // Show success animation
+                claimBtn.innerHTML = '<i class="fas fa-check"></i> Bonus Claimed!';
+                claimBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+                
+                // Wait a moment then redirect
+                setTimeout(() => {
+                    hideSignupBonusModal();
+                    saveToLocalStorage(user);
+                    setTimeout(() => {
+                        window.location.href = REDIRECT_URL;
+                    }, 50);
+                }, 150);
+            })
+            .catch(error => {
+                console.error("Error claiming signup bonus:", error);
+                showToast("Error claiming signup bonus. Please try again.", 'error');
+                isClaimingBonus = false;
+                claimBtn.disabled = false;
+                claimBtn.innerHTML = 'Claim';
+            });
+    }
+
+    // Set up auth state listener with proper logic
+    function setupAuthStateListener() {
+        auth.onAuthStateChanged(user => {
+            console.log("Auth state changed, user:", user ? "Logged in" : "Not logged in");
+            
+            if (user) {
+                // User is logged in
+                console.log("User signed in with:", user.providerData[0].providerId);
+                
+                // Check if user has claimed signup bonus
+                database.ref('appusers/' + user.uid + '/hasReceivedSignupBonus').once('value')
+                    .then(snapshot => {
+                        const hasReceivedSignupBonus = snapshot.exists() ? snapshot.val() : false;
+                        
+                        if (hasReceivedSignupBonus) {
+                            // User has claimed bonus, redirect to home
+                            console.log("User has claimed signup bonus, redirecting to home");
+                            saveToLocalStorage(user);
+                            setTimeout(() => {
+                                window.location.href = REDIRECT_URL;
+                            }, 100);
+                        } else {
+                            // User hasn't claimed bonus, check for pending bonus
+                            console.log("User hasn't claimed signup bonus, checking for pending bonus");
+                            database.ref('appusers/' + user.uid + '/pendingSignupBonusAmount').once('value')
+                                .then(bonusSnapshot => {
+                                    if (bonusSnapshot.exists() && !hasShownSignupBonusModal) {
+                                        pendingSignupBonusAmount = bonusSnapshot.val();
+                                        showSignupBonusModal(pendingSignupBonusAmount);
+                                    } else {
+                                        // No pending bonus, show referral section for new users
+                                        if (currentUserAfterGoogleSignIn) {
+                                            showReferralCodeSection();
+                                        }
+                                    }
+                                });
+                        }
+                    });
+            } else {
+                console.log("No user, showing Google sign in");
+                document.getElementById("googleSignInSection").style.display = "block";
+                document.getElementById("referralSection").classList.remove("active");
+            }
+        });
+    }
+
+    // Show referral code section after Google sign in
+    function showReferralCodeSection() {
+        document.getElementById("googleSignInSection").style.display = "none";
+        document.getElementById("referralSection").classList.add("active");
+    }
+
+    // Sign in with Google
+    function signInWithGoogle() {
+        document.getElementById('googleSpinner').style.display = 'block';
+        
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.addScope('email');
+        provider.addScope('profile');
+        
+        auth.signInWithPopup(provider)
+            .then(async (result) => {
+                document.getElementById('googleSpinner').style.display = 'none';
+                const user = result.user;
+                const email = user.email;
+                
+                console.log("Google sign in successful:", email);
+                
+                // Check if user exists in database with this email (old email/password users)
+                const usersSnapshot = await database.ref('appusers').orderByChild('email').equalTo(email).once('value');
+                
+                if (usersSnapshot.exists()) {
+                    // Old user found - migrate their data to Google account
+                    console.log("Old user found, migrating data...");
+                    await migrateOldUserToGoogle(user, usersSnapshot);
+                } else {
+                    // New user - create user data
+                    console.log("New user, creating account...");
+                    await createUserData(user);
+                }
+                
+                currentUserAfterGoogleSignIn = user;
+                
+                // Check if user has already received signup bonus
+                const bonusSnapshot = await database.ref('appusers/' + user.uid + '/hasReceivedSignupBonus').once('value');
+                const hasReceivedSignupBonus = bonusSnapshot.exists() ? bonusSnapshot.val() : false;
+                
+                if (hasReceivedSignupBonus) {
+                    // User already has bonus, redirect
+                    saveToLocalStorage(user);
+                    setTimeout(() => {
+                        window.location.href = REDIRECT_URL;
+                    }, 100);
+                } else {
+                    // Show referral code section for new user
+                    showReferralCodeSection();
+                }
+            })
+            .catch(error => {
+                document.getElementById('googleSpinner').style.display = 'none';
+                showToast(getErrorMessage(error), 'error');
+                console.error("Google sign in error:", error);
+            });
+    }
+
+    // Migrate old email user to Google account
+    async function migrateOldUserToGoogle(googleUser, oldUsersSnapshot) {
+        const oldUserData = oldUsersSnapshot.val();
+        const oldUserId = Object.keys(oldUserData)[0];
+        const oldUser = oldUserData[oldUserId];
+        const newUserId = googleUser.uid;
+        
+        // If it's the same user (shouldn't happen with Google), skip
+        if (oldUserId === newUserId) return;
+        
+        console.log(`Migrating user data from ${oldUserId} to ${newUserId}`);
+        
+        // Copy all old user data to new user ID
+        const updates = {};
+        
+        // Copy all user data except the user ID itself
+        Object.keys(oldUser).forEach(key => {
+            updates[`appusers/${newUserId}/${key}`] = oldUser[key];
+        });
+        
+        // Update referral code mapping if exists
+        if (oldUser.referralCode) {
+            updates[`referralCodes/${oldUser.referralCode}`] = newUserId;
+        }
+        
+        // Update all referrals that point to old user
+        const allUsersSnapshot = await database.ref('appusers').once('value');
+        allUsersSnapshot.forEach(userSnapshot => {
+            const uid = userSnapshot.key;
+            const userData = userSnapshot.val();
+            
+            if (userData.Referrals && userData.Referrals[oldUserId]) {
+                updates[`appusers/${uid}/Referrals/${newUserId}`] = userData.Referrals[oldUserId];
+                updates[`appusers/${uid}/Referrals/${oldUserId}`] = null;
+            }
+        });
+        
+        // Delete old user data
+        updates[`appusers/${oldUserId}`] = null;
+        
+        await database.ref().update(updates);
+        console.log("User migration completed successfully");
+    }
+
+    // Submit referral code
+    async function submitReferralCode() {
+        const referralCode = document.getElementById('referralCode').value.trim().toUpperCase();
+        const user = auth.currentUser;
+        
+        if (!user) {
+            showToast("Please sign in first", 'error');
+            return;
+        }
+        
+        document.getElementById('googleSpinner').style.display = 'block';
+        
+        try {
+            let bonusAmount;
+            
+            if (referralCode && referralCode.length === 10) {
+                // Process referral code
+                const result = await processSignupReferralCode(user.uid, referralCode);
+                bonusAmount = result.bonusAmount;
+                referralCodeUsed = result.isReferral ? referralCode : null;
+            } else {
+                // No referral code, give random signup bonus
+                bonusAmount = generateRandomSignupBonus();
+                referralCodeUsed = null;
+            }
+            
+            // Store pending bonus amount
+            pendingSignupBonusAmount = bonusAmount;
+            
+            // Save pending bonus to database
+            await database.ref('appusers/' + user.uid).update({
+                pendingSignupBonusAmount: bonusAmount,
+                hasReceivedSignupBonus: false
+            });
+            
+            document.getElementById('googleSpinner').style.display = 'none';
+            document.getElementById('referralSection').classList.remove('active');
+            
+            // Show signup bonus modal
+            showSignupBonusModal(pendingSignupBonusAmount);
+            
+        } catch (error) {
+            console.error("Error processing referral code:", error);
+            document.getElementById('googleSpinner').style.display = 'none';
+            
+            // Give random bonus on error
+            const randomBonus = generateRandomSignupBonus();
+            pendingSignupBonusAmount = randomBonus;
+            
+            await database.ref('appusers/' + user.uid).update({
+                pendingSignupBonusAmount: randomBonus,
+                hasReceivedSignupBonus: false
+            });
+            
+            document.getElementById('referralSection').classList.remove('active');
+            showSignupBonusModal(pendingSignupBonusAmount);
+        }
+    }
+
+    // Skip referral code
+    function skipReferralCode() {
+        const user = auth.currentUser;
+        if (!user) return;
+        
+        document.getElementById('googleSpinner').style.display = 'block';
+        
+        // Give random signup bonus
+        const randomBonus = generateRandomSignupBonus();
+        pendingSignupBonusAmount = randomBonus;
+        
+        database.ref('appusers/' + user.uid).update({
+            pendingSignupBonusAmount: randomBonus,
+            hasReceivedSignupBonus: false
+        })
+        .then(() => {
+            document.getElementById('googleSpinner').style.display = 'none';
+            document.getElementById('referralSection').classList.remove('active');
+            showSignupBonusModal(pendingSignupBonusAmount);
+        })
+        .catch(error => {
+            console.error("Error setting up bonus:", error);
+            document.getElementById('googleSpinner').style.display = 'none';
+            showToast("Error setting up account. Please try again.", 'error');
+        });
+    }
+
+    // Function to save transaction record (used ONLY when user claims bonus)
+    function saveTransactionRecord(userId, type, amount, balanceAfter, description, transactionName, isIncome = true) {
+        const transactionId = transactionIDGen.generateIncomeID();
+        const timestamp = Date.now();
+        
+        const transactionRecord = {
+            type: type,
+            transactionId: transactionId,
+            amount: amount,
+            description: description,
+            transactionName: transactionName,
+            timestamp: timestamp,
+            balanceAfter: balanceAfter,
+            isIncome: isIncome,
+            transactionType: isIncome ? 'added' : 'deducted'
+        };
+        
+        // Return the update path
+        const recordKey = `transaction_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
+        return {
+            path: `appusers/${userId}/transactionRecords/${recordKey}`,
+            value: transactionRecord
+        };
+    }
+
+    // Generate random signup bonus
+    function generateRandomSignupBonus() {
+        const randomAmount = (Math.random() * (SIGNUP_BONUS_MAX - SIGNUP_BONUS_MIN) + SIGNUP_BONUS_MIN).toFixed(2);
+        return parseFloat(randomAmount);
+    }
+
+    // Process referral code from signup form
+    async function processSignupReferralCode(userId, referralCode) {
+        if (!referralCode || referralCode.length !== 10 || !/^[A-Z0-9]+$/.test(referralCode)) {
+            // Invalid referral code, award random signup bonus
+            const randomBonus = generateRandomSignupBonus();
+            return { bonusAmount: randomBonus, isReferral: false };
+        }
+        
+        try {
+            // Check if referral code exists
+            const snapshot = await database.ref('referralCodes/' + referralCode).once('value');
+            
+            if (!snapshot.exists()) {
+                // Invalid referral code
+                const randomBonus = generateRandomSignupBonus();
+                return { bonusAmount: randomBonus, isReferral: false };
+            }
+            
+            const refereeId = snapshot.val();
+            
+            // Check if user is trying to use their own referral code
+            if (refereeId === userId) {
+                const randomBonus = generateRandomSignupBonus();
+                return { bonusAmount: randomBonus, isReferral: false };
+            }
+            
+            // Check if user has already used a referral code
+            const hasUsedSnapshot = await database.ref(`appusers/${userId}/hasUsedReferral`).once('value');
+            if (hasUsedSnapshot.exists() && hasUsedSnapshot.val() === true) {
+                const randomBonus = generateRandomSignupBonus();
+                return { bonusAmount: randomBonus, isReferral: false };
+            }
+            
+            const timestamp = Date.now();
+            const updates = {};
+
+            // Get current balance for referrer
+            const refereeBalanceSnapshot = await database.ref(`appusers/${refereeId}/totalBalance`).once('value');
+            const refereeCurrentBalance = refereeBalanceSnapshot.exists() ? Number(refereeBalanceSnapshot.val()) : 0;
+            const refereeBalanceAfter = refereeCurrentBalance + REFERRER_REWARD;
+
+            // Generate transaction record for referrer earning referral
+            const referrerTransaction = saveTransactionRecord(
+                refereeId,
+                'referral_earned',
+                REFERRER_REWARD,
+                refereeBalanceAfter,
+                `Referral earnings from new user signup (Code: ${referralCode})`,
+                'Referral Earnings',
+                true
+            );
+
+            // Mark that new user has used a referral code
+            updates[`appusers/${userId}/hasUsedReferral`] = true;
+            updates[`appusers/${userId}/referredVia`] = referralCode;
+            
+            // Update referrer's data
+            updates[`appusers/${refereeId}/referralEarnings`] = firebase.database.ServerValue.increment(REFERRER_REWARD);
+            updates[`appusers/${refereeId}/withdrawableBalance`] = firebase.database.ServerValue.increment(REFERRER_REWARD);
+            updates[`appusers/${refereeId}/totalBalance`] = firebase.database.ServerValue.increment(REFERRER_REWARD);
+            
+            // Add referral to referrer's Referrals list
+            updates[`appusers/${refereeId}/Referrals/${userId}`] = {
+                email: auth.currentUser?.email || "Guest Account",
+                timestamp: timestamp,
+                status: 'active',
+                earned: REFERRER_REWARD,
+                code: referralCode,
+                transactionId: referrerTransaction.value.transactionId
+            };
+            
+            // Add history for referrer
+            const referrerHistoryKey = `ref_earned_${timestamp}`;
+            updates[`appusers/${refereeId}/history/${referrerHistoryKey}`] = {
+                type: 'referral_earned',
+                from: userId,
+                to: refereeId,
+                code: referralCode,
+                amount: REFERRER_REWARD,
+                timestamp: timestamp,
+                description: `Referral earnings from new user (Code used: ${referralCode})`,
+                transactionId: referrerTransaction.value.transactionId
+            };
+            
+            // Add transaction record for referrer
+            updates[referrerTransaction.path] = referrerTransaction.value;
+
+            await database.ref().update(updates);
+            
+            console.log(`Referral processed: ${refereeId} earned ₹${REFERRER_REWARD} from ${userId}. ${userId} gets ₹${NEW_USER_REFERRAL_BONUS}`);
+            
+            // Return the bonus amount for new user
+            return { bonusAmount: NEW_USER_REFERRAL_BONUS, isReferral: true, refereeId: refereeId };
+            
+        } catch (error) {
+            console.error("Error processing referral:", error);
+            // On error, give random bonus
+            const randomBonus = generateRandomSignupBonus();
+            return { bonusAmount: randomBonus, isReferral: false };
+        }
+    }
+
+    // Securely generate a random 10-character referral code
+    function generateReferralCode(length = 10) {
+        const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        const values = new Uint32Array(length);
+        window.crypto.getRandomValues(values);
+        for (let i = 0; i < length; i++) {
+            result += charset[values[i] % charset.length];
+        }
+        return result;
+    }
+
+    // Create user data in Realtime Database
+    async function createUserData(user) {
+        const userId = user.uid;
+        const email = user.email || "Guest Account";
+        const timestamp = firebase.database.ServerValue.TIMESTAMP;
+
+        // Generate unique referral code
+        let referralCode;
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        while (attempts < maxAttempts) {
+            referralCode = generateReferralCode();
+            const snapshot = await database.ref('referralCodes/' + referralCode).once('value');
+            if (!snapshot.exists()) {
+                break;
+            }
+            attempts++;
+        }
+        
+        if (attempts === maxAttempts) {
+            referralCode = generateReferralCode(12); // Longer code if collisions
+        }
+
+        const userData = {
+            email: email,
+            referralCode: referralCode,
+            BankDetails: {
+                accountNumber: "",
+                accountName: "",
+                bankName: "",
+                ifscCode: ""
+            },
+            totalBalance: 0,
+            withdrawableBalance: 0,
+            depositHistory: {},
+            withdrawalHistory: {},
+            Referrals: {},
+            referralEarnings: 0,
+            notifications: {},
+            transactionRecords: {},
+            history: {},
+            createdAt: timestamp,
+            lastLogin: timestamp,
+            hasUsedReferral: false,
+            hasReceivedSignupBonus: false,
+            pendingSignupBonusAmount: 0,
+            provider: 'google'
+        };
+
+        const updates = {};
+        updates['appusers/' + userId] = userData;
+        updates['referralCodes/' + referralCode] = userId;
+
+        await database.ref().update(updates);
+        console.log("User data created with Google auth");
+        return userData;
+    }
+
+    // Update last login timestamp
+    function updateLastLogin(userId) {
+        return database.ref('appusers/' + userId + '/lastLogin').set(firebase.database.ServerValue.TIMESTAMP);
+    }
+
+    // Check if user exists in database, if not create
+    function ensureUserExists(user) {
+        return database.ref('appusers/' + user.uid).once('value')
+            .then(snapshot => {
+                if (!snapshot.exists()) {
+                    return createUserData(user);
+                } else {
+                    return updateLastLogin(user.uid);
+                }
+            });
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        const toastIcon = toast.querySelector('i');
+
+        toast.className = `toast ${type}`;
+        toastMessage.textContent = message;
+
+        if (type === 'success') {
+            toastIcon.className = 'fas fa-check-circle';
+        } else if (type === 'error') {
+            toastIcon.className = 'fas fa-exclamation-circle';
+        } else if (type === 'warning') {
+            toastIcon.className = 'fas fa-exclamation-triangle';
+        }
+
+        toast.classList.add('show');
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // Get user-friendly error message
+    function getErrorMessage(error) {
+        const code = error.code || error.message;
+        return errorMessages[code] || errorMessages.default;
+    }
+
+    // Save to localStorage
+    function saveToLocalStorage(user) {
+        localStorage.setItem("uid", user.uid);
+        localStorage.setItem("email", user.email || "Guest Account");
+        localStorage.setItem("login_method", "google");
+        localStorage.setItem("provider", "google");
+        console.log("User data saved to localStorage for Google auth");
+    }
+
+    // Check if user is already logged in via localStorage (legacy check)
+    function checkExistingAuth() {
+        const storedUid = localStorage.getItem('uid');
+        if (storedUid) {
+            const currentUser = auth.currentUser;
+            if (currentUser) {
+                console.log("User already authenticated, checking bonus status...");
+                
+                database.ref('appusers/' + currentUser.uid + '/hasReceivedSignupBonus').once('value')
+                    .then(snapshot => {
+                        const hasReceivedSignupBonus = snapshot.exists() ? snapshot.val() : false;
+                        
+                        if (hasReceivedSignupBonus) {
+                            setTimeout(() => {
+                                window.location.href = REDIRECT_URL;
+                            }, 500);
+                        }
+                    });
+            }
+        }
+    }
+
+    // Initial check on page load
+    checkExistingAuth();
+</script>
+</body>
+</html>
